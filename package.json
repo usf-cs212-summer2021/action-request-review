@@ -18,7 +18,9 @@
   },
   "homepage": "https://github.com/usf-cs212-spring2021/action-request-review#readme",
   "dependencies": {
+    "@actions/cache": "^1.0.6",
     "@actions/core": "^1.2.6",
+    "@actions/exec": "^1.0.4",
     "@actions/github": "^4.0.0"
   }
 }
