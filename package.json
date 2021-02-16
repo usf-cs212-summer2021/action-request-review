@@ -1,0 +1,24 @@
+{
+  "name": "action-request-review",
+  "version": "1.0.0",
+  "description": "Github action to request code review.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/usf-cs212-spring2021/action-request-review.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/usf-cs212-spring2021/action-request-review/issues"
+  },
+  "homepage": "https://github.com/usf-cs212-spring2021/action-request-review#readme",
+  "dependencies": {
+    "@actions/core": "^1.2.6",
+    "@actions/github": "^4.0.0"
+  }
+}
