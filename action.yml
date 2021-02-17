@@ -10,6 +10,11 @@ inputs:
     description: 'Project release to review'
     required: true
 
+  type:
+    description: 'Type of code review, [s]ynchronous or [a]synchronous'
+    required: true
+    default: 'synchronous'
+
 runs:
   using: 'node12'
   main: 'index.js'
