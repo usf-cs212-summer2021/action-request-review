@@ -83,7 +83,6 @@ exports.parseProject = function(context, ref) {
   details.mainRepo = `${owner}/${repo}`;
   details.testRepo = `${owner}/${exports.testDir}`;
 
-  const ref = context.ref;
   const tokens = ref.split('/');
   const version = tokens[tokens.length - 1];
 
