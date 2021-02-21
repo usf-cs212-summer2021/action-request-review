@@ -17,5 +17,5 @@ inputs:
 
 runs:
   using: 'node12'
-  setup: 'setup.js'
+  pre: 'setup.js'
   main: 'index.js'
