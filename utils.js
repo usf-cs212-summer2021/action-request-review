@@ -287,7 +287,7 @@ exports.getMilestone = async function(octokit, context, project) {
 
 exports.getPullRequests = async function(octokit, context, project, type) {
   // https://docs.github.com/en/rest/reference/pulls#list-pull-requests
-  core.info(`Listing ${type.toLowerCase()} issues for project ${project}...`);
+  core.info(`Listing pull requests for project ${project}...`);
   const result = await octokit.pulls.list({
     owner: context.repo.owner,
     repo: context.repo.repo,
