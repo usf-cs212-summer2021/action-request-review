@@ -16,6 +16,18 @@ async function checkIssues(octokit, context, project) {
   }
 
   core.info(`Passing functionality issue: ${funPassed.html_url}`);
+  core.info('');
+
+  const desIssues = await utils.getIssues(octokit, context, project, 'design');
+
+  const desPassed = desIssues.find(x => x.state == 'closed' && x.locked == true && x.active_lock_reason == 'resolved');
+
+  if (desPassed) {
+    core.info(`Passing design issue: ${desPassed.html_url}`);
+    throw new Error(`Detected approved design issue #${desPassed.number} for project ${project}. Additional code reviews are not necessary.`);
+  }
+
+  core.info(`No passing design issues for project ${project} found.`);
 
   core.info('');
   core.endGroup();
@@ -54,7 +66,7 @@ async function run() {
 
     // check functionality issue for project exists
     const issues = await checkIssues(octokit, github.context, states.project);
-    Objects.assign(states, issues);
+    Object.assign(states, issues);
 
     // check pull requests for project
 
