@@ -131,13 +131,13 @@ exports.verifyRelease = async function(octokit, context, release) {
       owner: owner, repo: repo, tag: release
     });
 
-    core.info(JSON.stringify(result));
-
     if (result.status != 200) {
+      core.info(JSON.stringify(result));
       throw new Error(`${result.status} exit code`);
     }
 
-    details.release = result;
+    core.info(JSON.stringify(result.data));
+    details.release = result.data;
   }
   catch (error) {
     // produce better error output
@@ -164,18 +164,18 @@ exports.verifyRelease = async function(octokit, context, release) {
     const branches = result.data.workflow_runs.map(r => r.head_branch);
     core.info(`Fetched ${result.data.workflow_runs.length} workflow runs: ${branches.join(', ')}`);
 
-    const found = runs.data.workflow_runs.find(r => r.head_branch === release);
+    const found = result.data.workflow_runs.find(r => r.head_branch === release);
 
     if (found === undefined) {
       throw new Error(`workflow run not found`);
     }
 
-    core.info(JSON.stringify(found));
-
     if (found.status != "completed" && found.conclusion != "success") {
+      core.info(JSON.stringify(found));
       throw new Error(`run #${found.run_number} (${found.id}) not successful`);
     }
 
+    core.info(JSON.stringify(found));
     details.workflow = found;
   }
   catch (error) {

@@ -24,7 +24,7 @@ async function run() {
 
     states.releaseUrl  = verified.release.html_url;
     states.releaseTag  = verified.release.tag_name;
-    states.releaseDate = verified.data.created_at;
+    states.releaseDate = verified.release.data.created_at;
 
     states.runNumber = verified.workflow.run_number;
     states.runId = verified.workflow.id;
@@ -34,7 +34,7 @@ async function run() {
     utils.saveStates(states);
   }
   catch (error) {
-    utils.showError(`${error}\n`); // show error in group
+    utils.showError(`${error.message}\n`); // show error in group
     core.endGroup();  // end group
 
     // displays outside of group; always visible
