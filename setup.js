@@ -12,13 +12,23 @@ async function run() {
 
   const octokit = github.getOctokit(token);
 
-  const release = core.getInput('release');
-  core.info(`Release: ${release}`);
-
   try {
-    utils.parseProject(github.context, release);
+    // get project details from release
+    const release = core.getInput('release');
+    const parsed = utils.parseProject(github.context, release);
+    
+    Object.assign(states, parsed);
 
-    // -----------------------------------------------
+    // check release is valid
+    const verified = utils.verifyRelease(octokit, github.context, states.version);
+
+    states.releaseUrl  = verified.release.html_url;
+    states.releaseTag  = verified.release.tag_name;
+    states.releaseDate = verified.data.created_at;
+
+    states.runNumber = verified.workflow.run_number;
+    states.runId = verified.workflow.id;
+    states.runUrl = verified.workflow.html_url;
 
     // save states
     utils.saveStates(states);

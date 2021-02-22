@@ -45,6 +45,7 @@ exports.checkExec = async function(command, settings) {
 
 exports.saveStates = function(states) {
   core.startGroup('Saving state...');
+  core.info('');
 
   for (const state in states) {
     core.saveState(state, states[state]);
@@ -52,11 +53,14 @@ exports.saveStates = function(states) {
   }
 
   core.saveState('keys', JSON.stringify(Object.keys(states)));
+
+  core.info('');
   core.endGroup();
 }
 
 exports.restoreStates = function(states) {
   core.startGroup('Restoring state...');
+  core.info('');
 
   const keys = JSON.parse(core.getState('keys'));
   core.info(`Loaded keys: ${keys}`);
@@ -66,13 +70,14 @@ exports.restoreStates = function(states) {
     core.info(`Restored value ${states[key]} for state ${key}.`);
   }
 
+  core.info('');
   core.endGroup();
   return states;
 }
 
 exports.parseProject = function(context, ref) {
-  // -----------------------------------------------
   core.startGroup('Parsing project details...');
+  core.info('');
 
   const details = {};
 
@@ -106,6 +111,76 @@ exports.parseProject = function(context, ref) {
 
   core.info('');
   core.endGroup();
+
+  return details;
+}
+
+exports.verifyRelease = function(octokit, context, release) {
+  core.startGroup('Checking release details...');
+  core.info('');
+
+  const owner = context.repo.owner;
+  const repo = context.repo.repo;
+
+  const details = {};
+
+  try {
+    // https://docs.github.com/en/rest/reference/repos#get-a-release-by-tag-name
+    core.info(`Fetching release ${release} from ${repo}...`);
+    const result = await octokit.repos.getReleaseByTag({
+      owner: owner, repo: repo, tag: release
+    });
+
+    core.info(JSON.stringify(result));
+
+    if (result.status != 200) {
+      throw new Error(`${result.status} exit code`);
+    }
+
+    details.release = result;
+  }
+  catch (error) {
+    // produce better error output
+    throw new Error(`Unable to fetch release ${release} (${error.message.toLowerCase()}).`);
+  }
+
+  core.info('');
+
+  try {
+    // https://docs.github.com/en/rest/reference/actions#list-workflow-runs-for-a-repository
+    core.info('Getting workflow runs...');
+    const result = await octokit.actions.listWorkflowRuns({
+      owner: owner,
+      repo: repo,
+      workflow_id: 'run-tests.yml',
+      event: 'release'
+    });
+
+    if (result.status != 200) {
+      core.info(JSON.stringify(result));
+      throw new Error(`${result.status} exit code`);
+    }
+
+    const branches = result.data.workflow_runs.map(r => r.head_branch);
+    core.info(`Fetched ${result.data.workflow_runs.length} workflow runs: ${branches.join(', ')}`);
+
+    const found = runs.data.workflow_runs.find(r => r.head_branch === release);
+
+    if (found === undefined) {
+      throw new Error(`workflow run not found`);
+    }
+
+    core.info(JSON.stringify(found));
+
+    if (found.status != "completed" && found.conclusion != "success") {
+      throw new Error(`run #${found.run_number} (${found.id}) not successful`);
+    }
+
+    details.workflow = found;
+  }
+  catch (error) {
+    throw new Error(`Unable to verify release ${release} (${error.message.toLowerCase()}).`);
+  }
 
   return details;
 }
