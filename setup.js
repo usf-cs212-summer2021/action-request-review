@@ -44,7 +44,7 @@ async function cloneProject(token, context, release) {
 
   core.startGroup(`Cloning ${release} of ${repo}...`);
 
-  const clone = await utils.checkExec('git', {
+  await utils.checkExec('git', {
     param: ['clone', '--depth', '1', '--no-tags', `https://github-actions:${token}@github.com/${owner}/${repo}`, utils.mainDir],
     title: `Cloning ${repo} into ${utils.mainDir}`,
     error: `Failed cloning ${repo} repository`
@@ -55,6 +55,16 @@ async function cloneProject(token, context, release) {
     title: 'Listing project main code',
     error: 'Unable to list test directory'
   });
+
+  core.info('');
+  core.endGroup();
+}
+
+async function prepareBranch(token, context, release) {
+  const owner = context.repo.owner;
+  const repo = context.repo.repo;
+
+  core.startGroup(`Preparing ${release} branch...`);
 
   await utils.checkExec('git', {
     param: ['fetch', '--unshallow', '--tags'],
@@ -79,7 +89,26 @@ async function cloneProject(token, context, release) {
     throw new Error(`The main branch has one or more commits since release ${release} was created. There must be no changes since the last verified release for code review.`);
   }
 
-  // TODO Branch here (but do not push)
+  await utils.checkExec('git', {
+    param: ['config', 'user.name', 'github-actions'],
+    title: 'Configuring github action user',
+    error: 'Unable to configure github action user',
+    chdir: utils.mainDir,
+  });
+
+  await utils.checkExec('git', {
+    param: ['config', 'user.email', 'github-actions@github.com'],
+    title: 'Configuring github action email',
+    error: 'Unable to configure github action email',
+    chdir: utils.mainDir,
+  });
+
+  await utils.checkExec('git', {
+    param: ['checkout', '-b', `review/${release}`],
+    title: 'Creating review branch',
+    error: 'Unable to create review branch',
+    chdir: utils.mainDir,
+  });
 
   core.info('');
   core.endGroup();
@@ -120,7 +149,10 @@ async function run() {
     // TODO: number of pull requests match version number
 
     // clone project repository
-    const cloned = await cloneProject(token, github.context, states.version);
+    await cloneProject(token, github.context, states.version);
+
+    // setup review branch
+    await prepareBranch(token, github.context, states.version);
 
     // save states
     utils.saveStates(states);
