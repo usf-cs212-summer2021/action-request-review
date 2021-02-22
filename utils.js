@@ -3,11 +3,72 @@ const github = require('@actions/github');
 const exec = require('@actions/exec');
 const style = require('ansi-styles');
 
-// track warnings
-exports.warnings = 0;
+exports.warnings = 0; // track warnings
 
 exports.mainDir = 'project-main';   // otherwise project-username
 exports.testDir = 'project-tests';  // must match pom.xml and repository name
+
+exports.showTitle = function(text) {
+  core.info(`\n${style.cyan.open}${style.bold.open}${text}${style.bold.close}${style.cyan.close}`);
+}
+
+function styleText(color, bgColor, label, text) {
+  core.info(`${style[bgColor].open}${style.black.open}${style.bold.open}${label}:${style.bold.close}${style.black.close}${style[bgColor].close} ${style[color].open}${text}${style[color].close}`);
+}
+
+exports.showError = function(text) {
+  styleText('red', 'bgRed', 'Error', text);
+}
+
+exports.showSuccess = function(text) {
+  styleText('green', 'bgGreen', 'Success', text);
+}
+
+exports.showWarning = function(text) {
+  exports.warnings++;
+  styleText('yellow', 'bgYellow', 'Warning', text);
+}
+
+exports.checkWarnings = function(phase) {
+  if (exports.warnings > 1) {
+    core.warning(`There were ${exports.warnings} warnings in the ${phase} phase. View the run log for details.`);
+  }
+  else if (exports.warnings == 1) {
+    core.warning(`There was ${exports.warnings} warning in the ${phase} phase. View the run log for details.`);
+  }
+}
+
+exports.saveStates = function(states) {
+  core.startGroup('Saving state...');
+  core.info('');
+
+  for (const state in states) {
+    core.saveState(state, states[state]);
+    core.info(`Saved value ${states[state]} for state ${state}.`);
+  }
+
+  core.saveState('keys', JSON.stringify(Object.keys(states)));
+
+  core.info('');
+  core.endGroup();
+}
+
+exports.restoreStates = function(states) {
+  core.startGroup('Restoring state...');
+  core.info('');
+
+  const keys = JSON.parse(core.getState('keys'));
+  core.info(`Loaded keys: ${keys}`);
+
+  for (const key of keys) {
+    states[key] = core.getState(key);
+    core.info(`Restored value ${states[key]} for state ${key}.`);
+  }
+
+  core.info('');
+  core.endGroup();
+  return states;
+}
 
 /*
  * Checks the exit code after executing a command and throws
@@ -41,38 +102,6 @@ exports.checkExec = async function(command, settings) {
   }
 
   return result;
-}
-
-exports.saveStates = function(states) {
-  core.startGroup('Saving state...');
-  core.info('');
-
-  for (const state in states) {
-    core.saveState(state, states[state]);
-    core.info(`Saved value ${states[state]} for state ${state}.`);
-  }
-
-  core.saveState('keys', JSON.stringify(Object.keys(states)));
-
-  core.info('');
-  core.endGroup();
-}
-
-exports.restoreStates = function(states) {
-  core.startGroup('Restoring state...');
-  core.info('');
-
-  const keys = JSON.parse(core.getState('keys'));
-  core.info(`Loaded keys: ${keys}`);
-
-  for (const key of keys) {
-    states[key] = core.getState(key);
-    core.info(`Restored value ${states[key]} for state ${key}.`);
-  }
-
-  core.info('');
-  core.endGroup();
-  return states;
 }
 
 exports.parseProject = function(context, ref) {
@@ -188,32 +217,45 @@ exports.verifyRelease = async function(octokit, context, release) {
   return details;
 }
 
-exports.showTitle = function(text) {
-  core.info(`\n${style.cyan.open}${style.bold.open}${text}${style.bold.close}${style.cyan.close}`);
-}
+exports.getMilestone = async function(octokit, context, project) {
+  // https://docs.github.com/en/rest/reference/issues#list-milestones
+  core.info('Listing milestones...');
+  const milestones = await octokit.issues.listMilestones({
+    owner: context.repo.owner,
+    repo: context.repo.repo
+  });
 
-function styleText(color, bgColor, label, text) {
-  core.info(`${style[bgColor].open}${style.black.open}${style.bold.open}${label}:${style.bold.close}${style.black.close}${style[bgColor].close} ${style[color].open}${text}${style[color].close}`);
-}
-
-exports.showError = function(text) {
-  styleText('red', 'bgRed', 'Error', text);
-}
-
-exports.showSuccess = function(text) {
-  styleText('green', 'bgGreen', 'Success', text);
-}
-
-exports.showWarning = function(text) {
-  exports.warnings++;
-  styleText('yellow', 'bgYellow', 'Warning', text);
-}
-
-exports.checkWarnings = function(phase) {
-  if (exports.warnings > 1) {
-    core.warning(`There were ${exports.warnings} warnings in the ${phase} phase. View the run log for details.`);
+  if (milestones.status != 200) {
+    core.info(SON.stringify(milestones));
+    throw new Error('unable to list milestones');
   }
-  else if (exports.warnings == 1) {
-    core.warning(`There was ${exports.warnings} warning in the ${phase} phase. View the run log for details.`);
+
+  const title = `Project ${project}`;
+  const found = milestones.data.find(x => x.title == title);
+
+  if (!found) {
+    const names = {
+      1: 'Inverted Index', 2: 'Partial Search',
+      3: 'Multithreading', 4: 'Search Engine'
+    };
+
+    const create = await octokit.issues.createMilestone({
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      title: title,
+      state: 'open',
+      description: `Project ${project} ${names[project]}`
+    });
+
+    if (create.status != 201) {
+      core.info(`Result: ${JSON.stringify(create)}`);
+      throw new Error(`Unable to create ${title} milestone.`);
+    }
+
+    core.info(`Created ${create.data.title} milestone.`);
+    return create.data;
   }
+
+  core.info(`Found ${found.title} milestone.`);
+  return found;
 }
