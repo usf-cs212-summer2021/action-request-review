@@ -217,12 +217,12 @@ exports.verifyRelease = async function(octokit, context, release) {
   return details;
 };
 
-exports.getIssues = async function(octokit, context, project) {
-  core.info(`Listing issues for project ${project}...`);
+exports.getIssues = async function(octokit, context, project, type) {
+  core.info(`Listing ${type.toLowerCase()} issues for project ${project}...`);
   const result = await octokit.issues.listForRepo({
     owner: context.repo.owner,
     repo: context.repo.repo,
-    labels: `project${project}`,
+    labels: `project${project},${type.toLowerCase()}`,
     state: 'all'
   });
 
@@ -231,7 +231,7 @@ exports.getIssues = async function(octokit, context, project) {
     throw new Error(`unable to list issues`);
   }
 
-  core.info(`Found ${result.data.length} issues for project ${project}.`);
+  core.info(`Found ${result.data.length} ${type.toLowerCase()} issues for project ${project}.`);
   return result.data;
 };
 

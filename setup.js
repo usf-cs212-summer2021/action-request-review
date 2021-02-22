@@ -34,8 +34,17 @@ async function run() {
     core.startGroup('Checking issues...');
     core.info('');
 
-    const issues = await utils.getIssues(octokit, github.context, states.project);
-    core.info(JSON.stringify(issues));
+    const funIssues = await utils.getIssues(octokit, github.context, states.project, 'functionality');
+
+    const funPassed = funIssues.find(x => x.state == 'closed' && x.locked == true && x.active_lock_reason == 'resolved');
+
+    if (!funPassed) {
+      throw new Error(`Unable to detect approved functionality issue for project ${project}. You must pass functionality before requesting code review.`);
+    }
+
+    core.info(`Passing functionality issue: ${funPassed.html_url}`);
+    states.issueNumber = funPassed.number;
+    states.issueUrl = funPassed.html_url;
 
     core.info('');
     core.endGroup();
