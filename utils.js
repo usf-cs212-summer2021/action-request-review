@@ -231,7 +231,8 @@ exports.getIssues = async function(octokit, context, project, type) {
     throw new Error(`unable to list issues`);
   }
 
-  core.info(`Found ${result.data.length} ${type.toLowerCase()} issues for project ${project}.`);
+  const numbers = result.data.map(x => x.number);
+  core.info(`Found Issues: #${numbers.join(', #')}`);
   return result.data;
 };
 

@@ -3,6 +3,29 @@ const github = require('@actions/github');
 const exec = require('@actions/exec');
 const utils = require('./utils.js');
 
+async function checkIssues(octokit, context, project) {
+  core.startGroup('Checking issues...');
+  core.info('');
+
+  const funIssues = await utils.getIssues(octokit, context, project, 'functionality');
+
+  const funPassed = funIssues.find(x => x.state == 'closed' && x.locked == true && x.active_lock_reason == 'resolved');
+
+  if (!funPassed) {
+    throw new Error(`Unable to detect approved functionality issue for project ${project}. You must pass functionality before requesting code review.`);
+  }
+
+  core.info(`Passing functionality issue: ${funPassed.html_url}`);
+
+  core.info('');
+  core.endGroup();
+
+  return {
+    issueNumber: funPassed.number,
+    issueUrl: funPassed.html_url
+  };
+}
+
 async function run() {
   const status = {}; // status of intermediate steps
   const states = {}; // things to remember between pre/main/post
@@ -16,7 +39,6 @@ async function run() {
     // get project details from release
     const release = core.getInput('release');
     const parsed = utils.parseProject(github.context, release);
-
     Object.assign(states, parsed);
 
     // check release is valid and verified
@@ -31,23 +53,8 @@ async function run() {
     states.runUrl = verified.workflow.html_url;
 
     // check functionality issue for project exists
-    core.startGroup('Checking issues...');
-    core.info('');
-
-    const funIssues = await utils.getIssues(octokit, github.context, states.project, 'functionality');
-
-    const funPassed = funIssues.find(x => x.state == 'closed' && x.locked == true && x.active_lock_reason == 'resolved');
-
-    if (!funPassed) {
-      throw new Error(`Unable to detect approved functionality issue for project ${project}. You must pass functionality before requesting code review.`);
-    }
-
-    core.info(`Passing functionality issue: ${funPassed.html_url}`);
-    states.issueNumber = funPassed.number;
-    states.issueUrl = funPassed.html_url;
-
-    core.info('');
-    core.endGroup();
+    const issues = await checkIssues(octokit, github.context, states.project);
+    Objects.assign(states, issues);
 
     // check pull requests for project
 
