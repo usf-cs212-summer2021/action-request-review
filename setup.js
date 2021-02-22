@@ -19,7 +19,7 @@ async function run() {
 
     Object.assign(states, parsed);
 
-    // check release is valid
+    // check release is valid and verified
     const verified = await utils.verifyRelease(octokit, github.context, states.version);
 
     states.releaseUrl  = verified.release.html_url;
@@ -27,8 +27,20 @@ async function run() {
     states.releaseDate = verified.release.created_at;
 
     states.runNumber = verified.workflow.run_number;
-    states.runId = verified.workflow.id;
+    states.runId  = verified.workflow.id;
     states.runUrl = verified.workflow.html_url;
+
+    // check functionality issue for project exists
+    core.startGroup('Checking issues...');
+    core.info('');
+
+    const issues = await utils.getIssues(octokit, github.context, states.project);
+    core.info(JSON.stringify(issues));
+
+    core.info('');
+    core.endGroup();
+
+    // check pull requests for project
 
     // save states
     utils.saveStates(states);

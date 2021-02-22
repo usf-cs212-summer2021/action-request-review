@@ -8,26 +8,26 @@ exports.warnings = 0; // track warnings
 exports.mainDir = 'project-main';   // otherwise project-username
 exports.testDir = 'project-tests';  // must match pom.xml and repository name
 
-exports.showTitle = function(text) {
-  core.info(`\n${style.cyan.open}${style.bold.open}${text}${style.bold.close}${style.cyan.close}`);
-}
-
 function styleText(color, bgColor, label, text) {
   core.info(`${style[bgColor].open}${style.black.open}${style.bold.open}${label}:${style.bold.close}${style.black.close}${style[bgColor].close} ${style[color].open}${text}${style[color].close}`);
 }
 
+exports.showTitle = function(text) {
+  core.info(`\n${style.cyan.open}${style.bold.open}${text}${style.bold.close}${style.cyan.close}`);
+};
+
 exports.showError = function(text) {
   styleText('red', 'bgRed', 'Error', text);
-}
+};
 
 exports.showSuccess = function(text) {
   styleText('green', 'bgGreen', 'Success', text);
-}
+};
 
 exports.showWarning = function(text) {
   exports.warnings++;
   styleText('yellow', 'bgYellow', 'Warning', text);
-}
+};
 
 exports.checkWarnings = function(phase) {
   if (exports.warnings > 1) {
@@ -36,7 +36,7 @@ exports.checkWarnings = function(phase) {
   else if (exports.warnings == 1) {
     core.warning(`There was ${exports.warnings} warning in the ${phase} phase. View the run log for details.`);
   }
-}
+};
 
 exports.saveStates = function(states) {
   core.startGroup('Saving state...');
@@ -51,7 +51,7 @@ exports.saveStates = function(states) {
 
   core.info('');
   core.endGroup();
-}
+};
 
 exports.restoreStates = function(states) {
   core.startGroup('Restoring state...');
@@ -68,7 +68,7 @@ exports.restoreStates = function(states) {
   core.info('');
   core.endGroup();
   return states;
-}
+};
 
 /*
  * Checks the exit code after executing a command and throws
@@ -102,7 +102,7 @@ exports.checkExec = async function(command, settings) {
   }
 
   return result;
-}
+};
 
 exports.parseProject = function(context, ref) {
   core.startGroup('Parsing project details...');
@@ -142,7 +142,7 @@ exports.parseProject = function(context, ref) {
   core.endGroup();
 
   return details;
-}
+};
 
 exports.verifyRelease = async function(octokit, context, release) {
   core.startGroup('Checking release details...');
@@ -215,7 +215,24 @@ exports.verifyRelease = async function(octokit, context, release) {
   core.endGroup();
 
   return details;
-}
+};
+
+exports.getIssues = async function(octokit, context, project) {
+  core.info(`Listing issues for project ${project}...`);
+  const result = await octokit.issues.listForRepo({
+    owner: context.repo.owner,
+    repo: context.repo.repo,
+    labels: `project${project}`
+  });
+
+  if (result.status != 200) {
+    core.info(JSON.stringify(result));
+    throw new Error(`unable to list issues`);
+  }
+
+  core.info(`Found ${result.data.length} issues for project ${project}.`);
+  return result.data;
+};
 
 exports.getMilestone = async function(octokit, context, project) {
   // https://docs.github.com/en/rest/reference/issues#list-milestones
@@ -258,4 +275,4 @@ exports.getMilestone = async function(octokit, context, project) {
 
   core.info(`Found ${found.title} milestone.`);
   return found;
-}
+};
