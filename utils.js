@@ -222,7 +222,8 @@ exports.getIssues = async function(octokit, context, project) {
   const result = await octokit.issues.listForRepo({
     owner: context.repo.owner,
     repo: context.repo.repo,
-    labels: `project${project}`
+    labels: `project${project}`,
+    state: 'all'
   });
 
   if (result.status != 200) {
