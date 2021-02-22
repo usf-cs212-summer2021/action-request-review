@@ -172,15 +172,18 @@ exports.verifyRelease = async function(octokit, context, release) {
 
     if (found.status != "completed" || found.conclusion != "success") {
       core.info(JSON.stringify(found));
-      throw new Error(`run #${found.run_number} (${found.id}) not successful`);
+      throw new Error(`run #${found.run_number} id ${found.id} not successful`);
     }
 
-    core.info(`Found Run: ${found.html_yrl}`);
+    core.info(`Found Run: ${found.html_url}`);
     details.workflow = found;
   }
   catch (error) {
     throw new Error(`Unable to verify release ${release} (${error.message.toLowerCase()}).`);
   }
+
+  core.info('');
+  core.endGroup();
 
   return details;
 }
@@ -191,14 +194,6 @@ exports.showTitle = function(text) {
 
 function styleText(color, bgColor, label, text) {
   core.info(`${style[bgColor].open}${style.black.open}${style.bold.open}${label}:${style.bold.close}${style.black.close}${style[bgColor].close} ${style[color].open}${text}${style[color].close}`);
-}
-
-function incrementWarnings() {
-  const past = core.getState('warnings');
-  console.info(`was ${past}`);
-  const next = past ? parseInt(past) + 1 : 1;
-  console.info(`now ${next}`);
-  core.saveState('warnings', next);
 }
 
 exports.showError = function(text) {
