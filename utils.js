@@ -70,40 +70,6 @@ exports.restoreStates = function(states) {
   return states;
 };
 
-/*
- * Checks the exit code after executing a command and throws
- * an error if it is non-zero. Useful since exec.exec triggers
- * failure on non-zero exit codes by default.
- *
- * command: the command to exec
- * settings.param: the parameters to use (array)
- * settings.title: the title to output before executing
- * settings.error: the error message to use for non-zero exit code
- *                 (if not specified, no error is thrown)
- * settings.chdir: working directory to use
- */
-exports.checkExec = async function(command, settings) {
-  const options = {ignoreReturnCode: true};
-
-  if ('chdir' in settings) {
-    options.cwd = settings.chdir;
-  }
-
-  const param = 'param' in settings ? settings.param : [];
-
-  if ('title' in settings) {
-    core.info(`\n${settings.title}...`);
-  }
-
-  const result = await exec.exec(command, param, options);
-
-  if ('error' in settings && result !== 0) {
-    throw new Error(`${settings.error} (${result}).`);
-  }
-
-  return result;
-};
-
 exports.parseProject = function(context, ref) {
   core.startGroup('Parsing project details...');
   core.info('');
@@ -143,6 +109,44 @@ exports.parseProject = function(context, ref) {
 
   return details;
 };
+
+// COMMAND-LINE HELPER FUNCTIONS
+
+/*
+ * Checks the exit code after executing a command and throws
+ * an error if it is non-zero. Useful since exec.exec triggers
+ * failure on non-zero exit codes by default.
+ *
+ * command: the command to exec
+ * settings.param: the parameters to use (array)
+ * settings.title: the title to output before executing
+ * settings.error: the error message to use for non-zero exit code
+ *                 (if not specified, no error is thrown)
+ * settings.chdir: working directory to use
+ */
+exports.checkExec = async function(command, settings) {
+  const options = {ignoreReturnCode: true};
+
+  if ('chdir' in settings) {
+    options.cwd = settings.chdir;
+  }
+
+  const param = 'param' in settings ? settings.param : [];
+
+  if ('title' in settings) {
+    core.info(`\n${settings.title}...`);
+  }
+
+  const result = await exec.exec(command, param, options);
+
+  if ('error' in settings && result !== 0) {
+    throw new Error(`${settings.error} (${result}).`);
+  }
+
+  return result;
+};
+
+// OCTOKIT HELPER FUNCTIONS
 
 exports.verifyRelease = async function(octokit, context, release) {
   core.startGroup('Checking release details...');
@@ -217,7 +221,9 @@ exports.verifyRelease = async function(octokit, context, release) {
   return details;
 };
 
+// TODO: Filter out pull_request key?
 exports.getIssues = async function(octokit, context, project, type) {
+  // https://docs.github.com/en/rest/reference/issues#list-repository-issues
   core.info(`Listing ${type.toLowerCase()} issues for project ${project}...`);
   const result = await octokit.issues.listForRepo({
     owner: context.repo.owner,
@@ -232,7 +238,7 @@ exports.getIssues = async function(octokit, context, project, type) {
   }
 
   const numbers = result.data.map(x => x.number);
-  core.info(`Found Issues: #${numbers.join(', #')}`);
+  core.info(`Found Issues: ${numbers.join(', ')}`);
   return result.data;
 };
 
@@ -277,4 +283,24 @@ exports.getMilestone = async function(octokit, context, project) {
 
   core.info(`Found ${found.title} milestone.`);
   return found;
+};
+
+exports.getPullRequests = async function(octokit, context, project, type) {
+  // https://docs.github.com/en/rest/reference/pulls#list-pull-requests
+  core.info(`Listing ${type.toLowerCase()} issues for project ${project}...`);
+  const result = await octokit.pulls.list({
+    owner: context.repo.owner,
+    repo: context.repo.repo,
+    labels: `project${project}`,
+    state: 'all'
+  });
+
+  if (result.status != 200) {
+    core.info(JSON.stringify(result));
+    throw new Error(`unable to list pull requests`);
+  }
+
+  const numbers = result.data.map(x => x.number);
+  core.info(`Found Pull Requests: ${numbers.join(', ')}`);
+  return result.data;
 };
