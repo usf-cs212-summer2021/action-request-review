@@ -115,7 +115,7 @@ exports.parseProject = function(context, ref) {
   return details;
 }
 
-exports.verifyRelease = function(octokit, context, release) {
+exports.verifyRelease = async function(octokit, context, release) {
   core.startGroup('Checking release details...');
   core.info('');
 
