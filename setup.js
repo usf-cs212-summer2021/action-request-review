@@ -63,34 +63,23 @@ async function cloneProject(token, context, release) {
     chdir: utils.mainDir
   });
 
-  // TODO: check if even with release
-
-  // echo "Comparing ${{ inputs.release_number }} to main branch..."
-  //
-  // git fetch --unshallow --tags
-
   await utils.checkExec('git', {
     param: ['diff', '--shortstat', 'origin/main', release],
     title: 'Checking main branch and release are even',
-    error: 'Unable compare main branch and release'
+    error: 'Unable compare main branch and release',
+    chdir: utils.mainDir
   });
 
   const changed = await utils.checkExec('git', {
     param: ['diff', '--exit-code', '--quiet', 'origin/main', release],
+    chdir: utils.mainDir
   });
 
-  core.info(changed);
+  if (changed != 0) {
+    throw new Error(`The main branch has one or more commits since release ${release} was created. There must be no changes since the last verified release for code review.`);
+  }
 
-  // git diff --shortstat origin/main ${{ inputs.release_number }}
-  // git diff --exit-code --quiet origin/main ${{ inputs.release_number }}
-  //
-  // if [[ $? -eq 0 ]]; then
-  //   echo "The main branch and release ${{ inputs.release_number }} are even."
-  //   exit 0
-  // fi
-  //
-  // echo "::error ::Differences found between release ${{ inputs.release_number }} and the main branch."
-  // exit 1
+  // TODO Branch here (but do not push)
 
   core.info('');
   core.endGroup();
