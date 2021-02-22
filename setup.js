@@ -24,7 +24,7 @@ async function run() {
 
     states.releaseUrl  = verified.release.html_url;
     states.releaseTag  = verified.release.tag_name;
-    states.releaseDate = verified.release.data.created_at;
+    states.releaseDate = verified.release.created_at;
 
     states.runNumber = verified.workflow.run_number;
     states.runId = verified.workflow.id;

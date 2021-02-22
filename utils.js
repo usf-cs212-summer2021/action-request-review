@@ -126,7 +126,7 @@ exports.verifyRelease = async function(octokit, context, release) {
 
   try {
     // https://docs.github.com/en/rest/reference/repos#get-a-release-by-tag-name
-    core.info(`Fetching release ${release} from ${repo}...`);
+    core.info(`Getting release ${release} from ${repo}...`);
     const result = await octokit.repos.getReleaseByTag({
       owner: owner, repo: repo, tag: release
     });
@@ -136,7 +136,7 @@ exports.verifyRelease = async function(octokit, context, release) {
       throw new Error(`${result.status} exit code`);
     }
 
-    core.info(JSON.stringify(result.data));
+    core.info(`Found Release: ${result.data.html_url}`);
     details.release = result.data;
   }
   catch (error) {
@@ -148,7 +148,7 @@ exports.verifyRelease = async function(octokit, context, release) {
 
   try {
     // https://docs.github.com/en/rest/reference/actions#list-workflow-runs-for-a-repository
-    core.info('Getting workflow runs...');
+    core.info('Listing workflow runs...');
     const result = await octokit.actions.listWorkflowRuns({
       owner: owner,
       repo: repo,
@@ -162,7 +162,7 @@ exports.verifyRelease = async function(octokit, context, release) {
     }
 
     const branches = result.data.workflow_runs.map(r => r.head_branch);
-    core.info(`Fetched ${result.data.workflow_runs.length} workflow runs: ${branches.join(', ')}`);
+    core.info(`Found Runs: ${branches.join(', ')}`);
 
     const found = result.data.workflow_runs.find(r => r.head_branch === release);
 
@@ -170,12 +170,12 @@ exports.verifyRelease = async function(octokit, context, release) {
       throw new Error(`workflow run not found`);
     }
 
-    if (found.status != "completed" && found.conclusion != "success") {
+    if (found.status != "completed" || found.conclusion != "success") {
       core.info(JSON.stringify(found));
       throw new Error(`run #${found.run_number} (${found.id}) not successful`);
     }
 
-    core.info(JSON.stringify(found));
+    core.info(`Found Run: ${found.html_yrl}`);
     details.workflow = found;
   }
   catch (error) {
