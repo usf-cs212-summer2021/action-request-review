@@ -112,6 +112,8 @@ async function prepareBranch(token, context, release) {
 
   core.info('');
   core.endGroup();
+
+  return `review/${release}`;
 }
 
 async function run() {
@@ -152,7 +154,8 @@ async function run() {
     await cloneProject(token, github.context, states.version);
 
     // setup review branch
-    await prepareBranch(token, github.context, states.version);
+    const branch = await prepareBranch(token, github.context, states.version);
+    states.branch = branch;
 
     // save states
     utils.saveStates(states);

@@ -18,10 +18,10 @@ async function run() {
     // check for main methods
     // https://linuxconfig.org/how-to-find-a-string-or-text-in-a-file-on-linux
 
-    // create branch
-
     // commit and push branch
-
+    // git commit --allow-empty -m "Creating review ${{ inputs.release_number }} branch..."
+    // git push -u origin review/${{ inputs.release_number }}
+    
     // create pull request
 
     // update pull request
