@@ -43,7 +43,6 @@ async function cloneProject(token, context, release) {
   const repo = context.repo.repo;
 
   core.startGroup(`Cloning ${release} of ${repo}...`);
-  core.info('');
 
   const clone = await utils.checkExec('git', {
     param: ['clone', '--depth', '1', '--no-tags', `https://github-actions:${token}@github.com/${owner}/${repo}`, utils.mainDir],
@@ -60,7 +59,8 @@ async function cloneProject(token, context, release) {
   await utils.checkExec('git', {
     param: ['fetch', '--unshallow', '--tags'],
     title: 'Fetching commit history and tags',
-    error: 'Unable to fetch history and tags'
+    error: 'Unable to fetch history and tags',
+    chdir: utils.mainDir
   });
 
   // TODO: check if even with release
