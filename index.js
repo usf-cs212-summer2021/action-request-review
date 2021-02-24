@@ -13,6 +13,13 @@ async function run() {
   const octokit = github.getOctokit(token);
 
   try {
+    utils.showTitle('Request Setup Phase');
+
+    // must do or setup state is lost
+    utils.restoreStates(states);
+
+
+
     // check for warnings
     // check for TODO comments
     // check for main methods
@@ -21,7 +28,7 @@ async function run() {
     // commit and push branch
     // git commit --allow-empty -m "Creating review ${{ inputs.release_number }} branch..."
     // git push -u origin review/${{ inputs.release_number }}
-    
+
     // create pull request
 
     // update pull request
