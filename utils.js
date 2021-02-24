@@ -151,7 +151,7 @@ exports.cacheMaven = async function(path) {
 
   core.info('\nHashing pom.xml file...');
   let hash = '';
-  status.sha256 = await exec.exec('sha256sum',
+  const sha256 = await exec.exec('sha256sum',
     [`${path}/pom.xml`], {
       ignoreReturnCode: true,
       listeners: {
@@ -159,7 +159,7 @@ exports.cacheMaven = async function(path) {
       }
     });
 
-  if (status.sha256 !== 0) {
+  if (sha256 !== 0) {
     exports.showWarning(`Unable to hash ${path}/pom.xml file (${sha256}).`);
     return undefined;
   }
@@ -174,7 +174,7 @@ exports.cacheMaven = async function(path) {
     [`${runner}-m2-`]  // other keys to restore
   );
 
-  core.info(`Returned cache: ${status.mavenCache}`);
+  core.info(`Returned cache: ${mavenCache}`);
 
   core.info('');
   core.endGroup();
