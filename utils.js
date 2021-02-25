@@ -9,6 +9,13 @@ exports.warnings = 0; // track warnings
 exports.mainDir = 'project-main';   // otherwise project-username
 exports.testDir = 'project-tests';  // must match pom.xml and repository name
 
+exports.projectNames = {
+  1: 'Inverted Index',
+  2: 'Partial Search',
+  3: 'Multithreading',
+  4: 'Search Engine'
+};
+
 function styleText(color, bgColor, label, text) {
   core.info(`${style[bgColor].open}${style.black.open}${style.bold.open}${label}:${style.bold.close}${style.black.close}${style[bgColor].close} ${style[color].open}${text}${style[color].close}`);
 }

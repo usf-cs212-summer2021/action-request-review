@@ -117,20 +117,70 @@ async function run() {
       chdir: `${utils.mainDir}/`
     });
 
-    status.branchPush = await utils.checkExec('git', {
-      param: ['push', '-u', 'origin', states.branch],
-      title: 'Pushing branch to remote',
-      error: `Unable to push ${states.branch} branch`,
-      chdir: `${utils.mainDir}/`
-    });
+    // status.branchPush = await utils.checkExec('git', {
+    //   param: ['push', '-u', 'origin', states.branch],
+    //   title: 'Pushing branch to remote',
+    //   error: `Unable to push ${states.branch} branch. Please make sure this branch does not already exist`,
+    //   chdir: `${utils.mainDir}/`
+    // });
 
     core.info('');
     core.endGroup();
     // -----------------------------------------------
 
-    // create pull request
+    // -----------------------------------------------
+    core.startGroup('Creating pull request...');
+
+    const body = `
+## Student Information
+
+- **Full Name:** [FULL_NAME]
+- **USF Email:** [USF_EMAIL]@usfca.edu
+
+## Project Information
+
+- **Project:** Project ${states.project} ${utils.projectNames[+states.project]}
+- **Project Functionality:** [Issue #${states.issueNumber}]{${states.issueUrl}}
+
+## Release Information
+
+- **Release:** [${states.releaseTag}](${states.releaseUrl})
+- **Release Verified:** [Run ${states.runNumber} (${states.runId})](${states.runUrl})
+- **Release Created:** ${states.releaseDate}
+
+## Previous Review Requests
+
+- Pending
+
+    `;
+
+    const data = {
+      owner: github.context.repo.owner,
+      repo: github.context.repo.repo,
+      title: `Pending`,
+      head: states.branch,
+      base: 'main',
+      body: body,
+      draft: true,
+      maintainer_can_modify: true,
+      issue: +states.issueNumber
+    };
+
+    core.info(JSON.stringify(data));
+
+    // octokit.pulls.create({
+    //   owner,
+    //   repo,
+    //   head,
+    //   base,
+    // });
 
     // update pull request
+
+    core.info('');
+    core.endGroup();
+    // -----------------------------------------------
+
 
     throw new Error('This action is not yet implemented. Contact the instructor for instructions on how to request code review.');
   }
