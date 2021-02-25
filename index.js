@@ -55,13 +55,15 @@ async function run() {
     core.endGroup();
     // -----------------------------------------------
 
+    utils.showTitle('Request Verify Phase');
+
     // -----------------------------------------------
     core.startGroup('Checking code for warnings...');
 
     status.mainCompile = await utils.checkExec('mvn', {
       param: ['-ntp', '-DcompileOptionXlint="-Xlint:all"', '-DcompileOptionXdoclint="-Xdoclint:all/private"', '-DcompileOptionFail="true"', '-Dmaven.compiler.showWarnings="true"', 'clean', 'compile'],
       title: 'Compiling project code',
-      error: 'Unable to compiling code without warnings',
+      error: 'Unable to compiling code without warnings. Please address all warnings before requesting code review',
       chdir: `${utils.mainDir}/`
     });
 
@@ -75,10 +77,28 @@ async function run() {
     core.endGroup();
     // -----------------------------------------------
 
-    // check for warnings
+    // -----------------------------------------------
+    core.startGroup('Checking code for TODO comments...');
+
+    status.todoGrep = await utils.checkExec('grep', {
+      param: ['-rnoiE', '//\\s*TODO\\b', '.'],
+      title: 'Checking for 1 line comments',
+      chdir: `${utils.mainDir}/src/main/java`
+    });
+
+    if (status.todoGrep != 1) {
+      throw new Error('One or more TODO comments found. Please clean up the code before requesting code review.');
+    }
+
+    core.info('');
+    core.endGroup();
+    // -----------------------------------------------
+
     // check for TODO comments
     // check for main methods
     // https://linuxconfig.org/how-to-find-a-string-or-text-in-a-file-on-linux
+
+    utils.showTitle('Request Aprrove Phase');
 
     // commit and push branch
     // git commit --allow-empty -m "Creating review ${{ inputs.release_number }} branch..."
