@@ -78,11 +78,11 @@ async function run() {
     // -----------------------------------------------
 
     // -----------------------------------------------
-    core.startGroup('Checking code for TODO comments...');
+    core.startGroup('Checking code for cleanup...');
 
     status.todoGrep = await utils.checkExec('grep', {
       param: ['-rnoiE', '//\\s*TODO\\b', '.'],
-      title: 'Checking for 1 line comments',
+      title: 'Checking for 1 line TODO comments',
       chdir: `${utils.mainDir}/src/main/java`
     });
 
@@ -93,7 +93,7 @@ async function run() {
 
     status.mainGrep = await utils.checkExec('grep', {
       param: ['-rnoiE', '--exclude=Driver.java', '\\s*public\\s+static\\s+void\\s+main\\s*\\(', '.'],
-      title: 'Checking for 1 line comments',
+      title: 'Checking for extra main methods',
       chdir: `${utils.mainDir}/src/main/java`
     });
 
@@ -105,15 +105,28 @@ async function run() {
     core.endGroup();
     // -----------------------------------------------
 
-    // check for TODO comments
-    // check for main methods
-    // https://linuxconfig.org/how-to-find-a-string-or-text-in-a-file-on-linux
-
     utils.showTitle('Request Aprrove Phase');
 
-    // commit and push branch
-    // git commit --allow-empty -m "Creating review ${{ inputs.release_number }} branch..."
-    // git push -u origin review/${{ inputs.release_number }}
+    // -----------------------------------------------
+    core.startGroup('Creating code review branch...');
+
+    status.branchCommit = await utils.checkExec('git', {
+      param: ['commit', '--allow-empty', '-m', `"Creating ${states.branch} branch"`],
+      title: 'Creating branch commit',
+      error: `Unable to commit ${states.branch} branch`,
+      chdir: `${utils.mainDir}/`
+    });
+
+    status.branchPush = await utils.checkExec('git', {
+      param: ['push', '-u', 'origin', ${states.branch}],
+      title: 'Pushing branch to remote',
+      error: `Unable to push ${states.branch} branch`,
+      chdir: `${utils.mainDir}/`
+    });
+
+    core.info('');
+    core.endGroup();
+    // -----------------------------------------------
 
     // create pull request
 
