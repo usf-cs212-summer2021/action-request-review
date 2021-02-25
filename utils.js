@@ -182,7 +182,7 @@ exports.cacheMaven = async function(path) {
 
   // check for warnings AFTER ending group
   if (!mavenCache) {
-    utils.showWarning(`Unable to restore cache: ${mavenKey}`);
+    exports.showWarning(`Unable to restore cache: ${mavenKey}`);
   }
 
   return {

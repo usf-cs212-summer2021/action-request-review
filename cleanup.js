@@ -6,9 +6,9 @@ async function run() {
   const status = {}; // status of intermediate steps
   const states = {}; // things to remember between pre/main/post
 
-  utils.restoreStates(states);
-
   try {
+    utils.restoreStates(states);
+
     // -----------------------------------------------
     core.startGroup('Saving Maven cache...');
 
