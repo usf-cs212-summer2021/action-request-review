@@ -18,7 +18,62 @@ async function run() {
     // must do or setup state is lost
     utils.restoreStates(states);
 
+    // -----------------------------------------------
+    core.startGroup('Displaying environment setup...');
 
+    await utils.checkExec('java', {
+      param: ['--version'],
+      title: 'Displaying Java runtime version',
+      error: 'Unable to display Java runtime version'
+    });
+
+    await utils.checkExec('javac', {
+      param: ['--version'],
+      title: 'Displaying Java compiler version',
+      error: 'Unable to display Java compiler version'
+    });
+
+    await utils.checkExec('mvn', {
+      param: ['--version'],
+      title: 'Displaying Maven version',
+      error: 'Unable to display Maven version'
+    });
+
+    core.info('');
+    core.endGroup();
+    // -----------------------------------------------
+
+    // -----------------------------------------------
+    core.startGroup('Updating Maven dependencies...');
+
+    status.maven = await utils.checkExec('mvn', {
+      param: ['-f', `${utils.mainDir}/pom.xml`, '-ntp', 'dependency:go-offline'],
+      error: 'Updating returned non-zero exit code',
+    });
+
+    core.info('');
+    core.endGroup();
+    // -----------------------------------------------
+
+    // -----------------------------------------------
+    core.startGroup('Checking code for warnings...');
+
+    status.mainCompile = await utils.checkExec('mvn', {
+      param: ['-ntp', '-DcompileOptionXlint="-Xlint:all"', '-DcompileOptionXdoclint="-Xdoclint:all/private"', '-DcompileOptionFail="true"', '-Dmaven.compiler.showWarnings="true"', 'clean', 'compile'],
+      title: 'Compiling project code',
+      error: 'Unable to compiling code without warnings',
+      chdir: `${utils.mainDir}/`
+    });
+
+    await utils.checkExec('ls', {
+      param: ['-m', `${utils.mainDir}/target/classes`],
+      title: 'Listing main class files',
+      error: 'Unable to list main class directory',
+    });
+
+    core.info('');
+    core.endGroup();
+    // -----------------------------------------------
 
     // check for warnings
     // check for TODO comments
