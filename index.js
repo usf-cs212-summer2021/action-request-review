@@ -92,7 +92,7 @@ async function run() {
     }
 
     status.mainGrep = await utils.checkExec('grep', {
-      param: ['-rnoiE', '--exclude=Driver.java', '\\s*public\\s+static\\s+void\\s+main\\s*\\(' '.'],
+      param: ['-rnoiE', '--exclude=Driver.java', '\\s*public\\s+static\\s+void\\s+main\\s*\\(', '.'],
       title: 'Checking for 1 line comments',
       chdir: `${utils.mainDir}/src/main/java`
     });
