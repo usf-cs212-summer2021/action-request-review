@@ -118,7 +118,7 @@ async function run() {
     });
 
     status.branchPush = await utils.checkExec('git', {
-      param: ['push', '-u', 'origin', ${states.branch}],
+      param: ['push', '-u', 'origin', states.branch],
       title: 'Pushing branch to remote',
       error: `Unable to push ${states.branch} branch`,
       chdir: `${utils.mainDir}/`
