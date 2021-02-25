@@ -87,7 +87,18 @@ async function run() {
     });
 
     if (status.todoGrep != 1) {
-      throw new Error('One or more TODO comments found. Please clean up the code before requesting code review.');
+      // throw new Error('One or more TODO comments found. Please clean up the code before requesting code review.');
+      utils.showWarning('One or more TODO comments found. Please clean up the code before requesting code review.');
+    }
+
+    status.mainGrep = await utils.checkExec('grep', {
+      param: ['-rnoiE', '--exclude=Driver.java', '\\s*public\\s+static\\s+void\\s+main\\s*\\(' '.'],
+      title: 'Checking for 1 line comments',
+      chdir: `${utils.mainDir}/src/main/java`
+    });
+
+    if (status.mainGrep != 1) {
+      utils.showWarning('More than one main method found. Please clean up old main methods before requesting code review.');
     }
 
     core.info('');
