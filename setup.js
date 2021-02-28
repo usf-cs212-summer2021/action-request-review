@@ -146,22 +146,6 @@ async function run() {
     const issues = await checkIssues(octokit, github.context, states.project);
     Object.assign(states, issues);
 
-    // check pull requests for project
-    core.startGroup('Checking pull requests...');
-    core.info('');
-
-    const pulls = await utils.getPullRequests(octokit, github.context, states.project);
-
-    core.info(JSON.stringify(pulls));
-
-    core.info('');
-    core.endGroup();
-
-    // TODO: no open pull requests
-    // TODO: number of pull requests match version number
-
-    // check type of code review is valid
-
     // clone project repository
     await cloneProject(token, github.context, states.version);
 
