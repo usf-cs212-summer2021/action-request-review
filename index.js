@@ -139,8 +139,8 @@ async function run() {
 
 ## Project Information
 
-- **Project:** Project ${states.project} ${utils.projectNames[+states.project]}
-- **Project Functionality:** [Issue #${states.issueNumber}]{${states.issueUrl}}
+- **Project:** [Project ${states.project} ${utils.projectNames[+states.project]}](https://usf-cs212-spring2021.github.io/guides/projects/project-${states.project}.html)
+- **Project Functionality:** [Issue #${states.issueNumber}](${states.issueUrl})
 
 ## Release Information
 
@@ -148,9 +148,11 @@ async function run() {
 - **Release Verified:** [Run ${states.runNumber} (${states.runId})](${states.runUrl})
 - **Release Created:** ${states.releaseDate}
 
-## Previous Review Requests
+## Request Details
 
-- Pending
+- **Review Type:** ${states.type}
+- **Previous Review:** [Pull Request #${states.pullNumber}](${states.pullUrl})
+- **Previous Review Date:** ${states.pullDate}
 
     `;
 
@@ -174,6 +176,15 @@ async function run() {
     //   head,
     //   base,
     // });
+
+
+// Find all pull requests with label
+// See whether can determine if approved
+// See if can parse release version
+//
+// 1. Pull Request #1, Release v1.0.0, Thu Apr 5, 2021
+// 1. Pull Request #2, Release v1.1.0, Thu Apr 10, 2021
+
 
     // update pull request
 

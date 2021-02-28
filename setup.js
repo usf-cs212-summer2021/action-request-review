@@ -150,7 +150,7 @@ async function run() {
     // TODO: no open pull requests
     // TODO: number of pull requests match version number
 
-    // check type of code review is valid 
+    // check type of code review is valid
 
     // clone project repository
     await cloneProject(token, github.context, states.version);

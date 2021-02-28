@@ -78,11 +78,32 @@ exports.restoreStates = function(states) {
   return states;
 };
 
+function checkRequestType() {
+  const type = core.getInput('type');
+  const usage = 'Review request types must start with "s" for synchronous code reviews (default type) or "a" for pre-approved asynchronous code reviews.';
+
+  if (!type) {
+    throw new Error(`Missing required review request type. ${usage}`);
+  }
+
+  switch (type.charAt(0)) {
+    case 's': case 'S':
+      return 'Synchronous';
+    case 'a': case 'A':
+      return 'Asynchronous';
+    default:
+      throw new Error(`The value "${type}" is not a valid code review type. ${usage}`);
+  }
+}
+
 exports.parseProject = function(context, ref) {
   core.startGroup('Parsing project details...');
   core.info('');
 
   const details = {};
+
+  details.type = checkRequestType();
+  core.info(`Request type   : ${details.type}`);
 
   const owner = context.repo.owner;
   const repo = context.repo.repo;
@@ -90,6 +111,9 @@ exports.parseProject = function(context, ref) {
   details.owner    = owner;
   details.mainRepo = `${owner}/${repo}`;
   details.testRepo = `${owner}/${exports.testDir}`;
+
+  core.info(`Main repository: ${details.mainRepo}`);
+  core.info(`Test repository: ${details.testRepo}`);
 
   const tokens = ref.split('/');
   const version = tokens[tokens.length - 1];
@@ -107,6 +131,7 @@ exports.parseProject = function(context, ref) {
     throw new Error(`Unable to parse project information from: ${ref}`);
   }
 
+  core.info('');
   core.info(`Project version: ${details.version}`);
   core.info(`Project number:  ${details.project}`);
   core.info(`Project reviews: ${details.reviews}`);
