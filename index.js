@@ -131,6 +131,10 @@ async function run() {
     // -----------------------------------------------
     core.startGroup('Creating pull request...');
 
+    const pulls = await utils.getPullRequests(octokit, github.context, states.project);
+
+    core.info(pulls);
+
     const body = `
 ## Student Information
 

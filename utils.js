@@ -368,18 +368,26 @@ exports.getPullRequests = async function(octokit, context, project) {
   const result = await octokit.pulls.list({
     owner: context.repo.owner,
     repo: context.repo.repo,
-    labels: `project${project}`,
     state: 'all',
     sort: 'created'
   });
 
-  if (result.status != 200) {
+  if (result.status == 404) {
+    exports.showWarning(`Pull requests not found for: ${context.repo.repo}`);
+    return [];
+  }
+  else if (result.status != 200) {
     core.info(JSON.stringify(result));
+
     throw new Error(`Unable to list pull requests in: ${context.repo.repo}`);
   }
 
-  const numbers = result.data.map(x => x.number);
-  core.info(`Found Pull Requests: ${numbers.join(', ')}`);
+  core.info(`Found ${result.data.length} pull requests before filtering.`);
 
-  return result.data;
+  const filtered = rseult.data.filter(x => 'labels' in x && x.labels.some(y => y.name == `project${project}`));
+
+  const numbers = filtered.map(x => x.number);
+  core.info(`Filtered Pull Requests: ${numbers.join(', ')} (${filtered.length} total)`);
+
+  return filtered;
 };
