@@ -133,7 +133,7 @@ exports.parseProject = function(context, ref) {
 
   core.info('');
   core.info(`Project version: ${details.version}`);
-  core.info(`Project number:  ${details.project}`);
+  core.info(`Project number : ${details.project}`);
   core.info(`Project reviews: ${details.reviews}`);
   core.info(`Project patches: ${details.patches}`);
 
@@ -311,7 +311,7 @@ exports.getIssues = async function(octokit, context, project, type) {
 
   if (result.status != 200) {
     core.info(JSON.stringify(result));
-    throw new Error(`unable to list issues`);
+    throw new Error(`Unable to list issues from: ${context.repo.repo}`);
   }
 
   const numbers = result.data.map(x => x.number);
@@ -329,7 +329,7 @@ exports.getMilestone = async function(octokit, context, project) {
 
   if (milestones.status != 200) {
     core.info(SON.stringify(milestones));
-    throw new Error('unable to list milestones');
+    throw new Error(`Unable to list milestones in: ${context.repo.repo}`);
   }
 
   const title = `Project ${project}`;
@@ -351,7 +351,7 @@ exports.getMilestone = async function(octokit, context, project) {
 
     if (create.status != 201) {
       core.info(`Result: ${JSON.stringify(create)}`);
-      throw new Error(`Unable to create ${title} milestone.`);
+      throw new Error(`Unable to create ${title} milestone in: ${context.repo.repo}`);
     }
 
     core.info(`Created ${create.data.title} milestone.`);
@@ -362,22 +362,24 @@ exports.getMilestone = async function(octokit, context, project) {
   return found;
 };
 
-exports.getPullRequests = async function(octokit, context, project, type) {
+exports.getPullRequests = async function(octokit, context, project) {
   // https://docs.github.com/en/rest/reference/pulls#list-pull-requests
   core.info(`Listing pull requests for project ${project}...`);
   const result = await octokit.pulls.list({
     owner: context.repo.owner,
     repo: context.repo.repo,
     labels: `project${project}`,
-    state: 'all'
+    state: 'all',
+    sort: 'created'
   });
 
   if (result.status != 200) {
     core.info(JSON.stringify(result));
-    throw new Error(`unable to list pull requests`);
+    throw new Error(`Unable to list pull requests in: ${context.repo.repo}`);
   }
 
   const numbers = result.data.map(x => x.number);
   core.info(`Found Pull Requests: ${numbers.join(', ')}`);
+
   return result.data;
 };
