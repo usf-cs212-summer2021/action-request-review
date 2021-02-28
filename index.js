@@ -131,8 +131,11 @@ async function run() {
 
     // -----------------------------------------------
     core.startGroup('Creating pull request...');
+    core.info('');
 
     const pulls = await utils.getPullRequests(octokit, github.context, states.project);
+
+    const milestone = await utils.getMilestone(octokit, project);
 
     let reviewList = 'N/A';
     const zone = 'America/Los_Angeles';
@@ -143,9 +146,40 @@ async function run() {
         '|:----:|:------:|:-------|:----------|:--------|:-------|'
       ];
 
+      let sorter = function(x, y) {
+        // project first
+        if (x.startsWith('project')) {
+          return -1;
+        }
+
+        if (y.startsWith('project')) {
+          return 1;
+        }
+
+        // tag next
+        if (x.startsWith('v')) {
+          return -1;
+        }
+
+        if (y.startsWith('v')) {
+          return 1;
+        }
+
+        // then whatever is left
+        if (x < y) {
+          return -1;
+        }
+
+        if (x > y) {
+          return -1;
+        }
+
+        return 0;
+      }
+
       for (const pull of pulls) {
         const status = pull.draft ? 'draft' : pull.state;
-        const labels = pull.labels ? pull.labels.join(', ') : 'N/A';
+        const labels = pull.labels ? pull.labels.sort(sorter).join(', ') : 'N/A';
         const reviewers = pull.requested_reviewers ? pull.requested_reviewers.map(x => `@${x.login}`).join(', ') : 'N/A';
 
         const createdDate = pull.created_at ? DateTime.fromISO(pull.created_at).setZone(zone).toLocaleString(DateTime.DATETIME_FULL) : 'N/A';
@@ -187,7 +221,7 @@ ${reviewList}
     const data = {
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
-      title: `Pending`,
+      title: `Project ${states.releaseTag} ${states.type} Code Review`,
       head: states.branch,
       base: 'main',
       body: body,
@@ -205,7 +239,51 @@ ${reviewList}
     //   base,
     // });
 
-    // update pull request
+    // https://docs.github.com/en/rest/reference/issues#update-an-issue
+    const update = {
+      owner: github.context.repo.owner,
+      repo: github.context.repo.repo,
+      issue_number: 'TODO',
+      milestone: milestone.number,
+      labels: [`project${states.project}`, states.type.toLowerCase(), states.releaseTag],
+      assignees: [${github.context.actor}]
+    };
+
+    core.info(JSON.stringify(update));
+
+    // add reviewers to pull request
+    /*
+    await octokit.request('POST /repos/{owner}/{repo}/pulls/{pull_number}/requested_reviewers', {
+      owner: 'octocat',
+      repo: 'hello-world',
+      pull_number: 42,
+      reviewers: [
+        'reviewers'
+      ]
+    })
+    */
+
+    const comment = `
+## Student Instructions
+
+Hello @${github.context.actor}! Please follow these instructions to request your project ${states.releaseTag} ${type.toLowerCase()} code review:
+
+- [ ] Replace \`[FULL_NAME]\` with your full name and \`[USF_EMAIL]\` with your USF username so we can enter your grade on Canvas.
+
+- [ ] Double-check the [labels, assignee, and milestone](https://guides.github.com/features/issues/) are set properly.
+
+- [ ] Double-check you are making the correct type of request. You can only request an asynchronous code review if you were pre-approved by the instructor!
+
+- [ ] **Mark this request as "Ready to Review" when all of the above is complete.**
+
+Click each of the above tasks as you complete them!
+
+We will reply with further instructions. If we do not respond within 2 *business* days, please reach out on CampusWire.
+
+:warning: **We will not see this request while it is in draft mode. You must mark it as ready to review first!**
+    `;
+
+    core.info(comment);
 
     core.info('');
     core.endGroup();
