@@ -384,7 +384,7 @@ exports.getPullRequests = async function(octokit, context, project) {
 
   core.info(`Found ${result.data.length} pull requests before filtering.`);
 
-  const filtered = rseult.data.filter(x => 'labels' in x && x.labels.some(y => y.name == `project${project}`));
+  const filtered = result.data.filter(x => 'labels' in x && x.labels.some(y => y.name == `project${project}`));
 
   const numbers = filtered.map(x => x.number);
   core.info(`Filtered Pull Requests: ${numbers.join(', ')} (${filtered.length} total)`);
