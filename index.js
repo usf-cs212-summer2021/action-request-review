@@ -2,6 +2,7 @@ const core = require('@actions/core');
 const github = require('@actions/github');
 const exec = require('@actions/exec');
 const utils = require('./utils.js');
+var { DateTime } = require('luxon');
 
 async function run() {
   const status = {}; // status of intermediate steps
@@ -133,7 +134,28 @@ async function run() {
 
     const pulls = await utils.getPullRequests(octokit, github.context, states.project);
 
-    core.info(pulls);
+    let reviewList = 'N/A';
+    const zone = 'America/Los_Angeles';
+
+    if (pulls.length > 0) {
+      let rows = [
+        '| Pull | Status | Labels | Reviewers | Created | Closed |',
+        '|:----:|:------:|:-------|:----------|:--------|:-------|'
+      ];
+
+      for (const pull of pulls) {
+        const status = pull.draft ? 'draft' : pull.state;
+        const labels = pull.labels ? pull.labels.join(', ') : 'N/A';
+        const reviewers = pull.requested_reviewers ? pull.requested_reviewers.map(x => `@${x.login}`).join(', ') : 'N/A';
+
+        const createdDate = pull.created_at ? DateTime.fromISO(pull.created_at).setZone(zone).toLocaleString(DateTime.DATETIME_FULL) : 'N/A';
+        const closedDate = pull.closed_at ? DateTime.fromISO(pull.closed_at).setZone(zone).toLocaleString(DateTime.DATETIME_FULL) : 'N/A';
+
+        rows.push(`| [#${pull.number}](${pull.html_url}) | ${status} | ${labels} | ${reviewers} | ${createdDate} | ${closedDate} |`);
+      }
+
+      reviewList = rows.join('\n');
+    }
 
     const body = `
 ## Student Information
@@ -155,8 +177,10 @@ async function run() {
 ## Request Details
 
 - **Review Type:** ${states.type}
-- **Previous Review:** [Pull Request #${states.pullNumber}](${states.pullUrl})
-- **Previous Review Date:** ${states.pullDate}
+
+#### Previous Pull Requests
+
+${reviewList}
 
     `;
 
@@ -180,15 +204,6 @@ async function run() {
     //   head,
     //   base,
     // });
-
-
-// Find all pull requests with label
-// See whether can determine if approved
-// See if can parse release version
-//
-// 1. Pull Request #1, Release v1.0.0, Thu Apr 5, 2021
-// 1. Pull Request #2, Release v1.1.0, Thu Apr 10, 2021
-
 
     // update pull request
 
