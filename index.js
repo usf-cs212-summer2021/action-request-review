@@ -135,7 +135,7 @@ async function run() {
 
     const pulls = await utils.getPullRequests(octokit, github.context, states.project);
 
-    const milestone = await utils.getMilestone(octokit, states.project);
+    const milestone = await utils.getMilestone(octokit, github.context, states.project);
 
     let reviewList = 'N/A';
     const zone = 'America/Los_Angeles';
