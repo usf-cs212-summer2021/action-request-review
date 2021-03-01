@@ -135,7 +135,7 @@ async function run() {
 
     const pulls = await utils.getPullRequests(octokit, github.context, states.project);
 
-    const milestone = await utils.getMilestone(octokit, project);
+    const milestone = await utils.getMilestone(octokit, states.project);
 
     let reviewList = 'N/A';
     const zone = 'America/Los_Angeles';
@@ -266,7 +266,7 @@ ${reviewList}
     const comment = `
 ## Student Instructions
 
-Hello @${github.context.actor}! Please follow these instructions to request your project ${states.releaseTag} ${type.toLowerCase()} code review:
+Hello @${github.context.actor}! Please follow these instructions to request your project ${states.releaseTag} ${states.type.toLowerCase()} code review:
 
 - [ ] Replace \`[FULL_NAME]\` with your full name and \`[USF_EMAIL]\` with your USF username so we can enter your grade on Canvas.
 
