@@ -152,29 +152,29 @@ async function run() {
 
       let sorter = function(x, y) {
         // project first
-        if (x.startsWith('project')) {
+        if (x.name.startsWith('project')) {
           return -1;
         }
 
-        if (y.startsWith('project')) {
+        if (y.name.startsWith('project')) {
           return 1;
         }
 
         // tag next
-        if (x.startsWith('v')) {
+        if (x.name.startsWith('v')) {
           return -1;
         }
 
-        if (y.startsWith('v')) {
+        if (y.name.startsWith('v')) {
           return 1;
         }
 
         // then whatever is left
-        if (x < y) {
+        if (x.name < y.name) {
           return -1;
         }
 
-        if (x > y) {
+        if (x.name > y.name) {
           return -1;
         }
 
