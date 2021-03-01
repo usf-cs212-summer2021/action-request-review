@@ -62,7 +62,7 @@ async function run() {
     core.startGroup('Checking code for warnings...');
 
     status.mainCompile = await utils.checkExec('mvn', {
-      param: ['-ntp', '-DcompileOptionXlint="-Xlint:all"', '-DcompileOptionXdoclint="-Xdoclint:all/private"', '-DcompileOptionFail="true"', '-Dmaven.compiler.showWarnings="true"', 'clean', 'compile'],
+      param: ['-ntp', '-DcompileOptionXlint="-Xlint:all"', '-DcompileOptionXdoclint="-Xdoclint:all/private"', '-Dmaven.compiler.failOnWarning="true"', '-Dmaven.compiler.showWarnings="true"', 'clean', 'compile'],
       title: 'Compiling project code',
       error: 'Unable to compiling code without warnings. Please address all warnings before requesting code review',
       chdir: `${utils.mainDir}/`
