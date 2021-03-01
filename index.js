@@ -183,7 +183,7 @@ async function run() {
 
       for (const pull of pulls) {
         const status = pull.draft ? 'draft' : pull.state;
-        const labels = pull.labels ? pull.labels.sort(sorter).join(', ') : 'N/A';
+        const labels = pull.labels ? pull.labels.sort(sorter).map(x => x.name).join(', ') : 'N/A';
         const reviewers = pull.requested_reviewers ? pull.requested_reviewers.map(x => `@${x.login}`).join(', ') : 'N/A';
 
         const createdDate = pull.created_at ? DateTime.fromISO(pull.created_at).setZone(zone).toLocaleString(DateTime.DATETIME_FULL) : 'N/A';
@@ -210,7 +210,7 @@ async function run() {
 
 - **Release:** [${states.releaseTag}](${states.releaseUrl})
 - **Release Verified:** [Run ${states.runNumber} (${states.runId})](${states.runUrl})
-- **Release Created:** ${states.releaseDate}
+- **Release Created:** ${DateTime.fromISO(states.releaseDate).setZone(zone).toLocaleString(DateTime.DATETIME_FULL)}
 
 ## Request Details
 
@@ -252,13 +252,13 @@ ${reviewList}
       repo: github.context.repo.repo,
       issue_number: pullRequest.data.number,
       milestone: milestone.number,
-      labels: [`project${states.project}`, states.type.toLowerCase(), states.releaseTag],
+      labels: [`project${states.project}`, states.type.toLowerCase(), states.releaseTag, 'test'],
       assignees: [github.context.actor]
     };
 
     const updateRequest = await octokit.issues.update(update);
 
-    if (updateRequest.status != 201) {
+    if (updateRequest.status != 200) {
       core.info(`Request: ${JSON.stringify(update)}`);
       core.info(`Result: ${JSON.stringify(updateRequest)}`);
       throw new Error(`Unable to update labels for pull request at: ${pullRequest.data.html_url}`);
