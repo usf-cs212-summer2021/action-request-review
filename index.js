@@ -113,7 +113,7 @@ async function run() {
     core.endGroup();
     // -----------------------------------------------
 
-    utils.showTitle('Request Aprrove Phase');
+    utils.showTitle('Request Approve Phase');
 
     // -----------------------------------------------
     core.startGroup('Creating code review branch...');
