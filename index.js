@@ -118,12 +118,12 @@ async function run() {
       chdir: `${utils.mainDir}/`
     });
 
-    // status.branchPush = await utils.checkExec('git', {
-    //   param: ['push', '-u', 'origin', states.branch],
-    //   title: 'Pushing branch to remote',
-    //   error: `Unable to push ${states.branch} branch. Please make sure this branch does not already exist`,
-    //   chdir: `${utils.mainDir}/`
-    // });
+    status.branchPush = await utils.checkExec('git', {
+      param: ['push', '-u', 'origin', states.branch],
+      title: 'Pushing branch to remote',
+      error: `Unable to push ${states.branch} branch. Please make sure this branch does not already exist`,
+      chdir: `${utils.mainDir}/`
+    });
 
     core.info('');
     core.endGroup();
@@ -133,12 +133,16 @@ async function run() {
     core.startGroup('Creating pull request...');
     core.info('');
 
-    const pulls = await utils.getPullRequests(octokit, github.context, states.project);
-
     const milestone = await utils.getMilestone(octokit, github.context, states.project);
+
+    core.info('');
+    const pulls = await utils.getPullRequests(octokit, github.context, states.project);
 
     let reviewList = 'N/A';
     const zone = 'America/Los_Angeles';
+
+    core.info('');
+    core.info('Creating pull request...');
 
     if (pulls.length > 0) {
       let rows = [
@@ -230,39 +234,58 @@ ${reviewList}
       issue: +states.issueNumber
     };
 
-    core.info(JSON.stringify(data));
+    const pullRequest = await octokit.pulls.create(data);
 
-    // octokit.pulls.create({
-    //   owner,
-    //   repo,
-    //   head,
-    //   base,
-    // });
+    if (pullRequest.status != 201) {
+      core.info(`Request: ${JSON.stringify(data)}`);
+      core.info(`Result: ${JSON.stringify(pullRequest)}`);
+      throw new Error(`Unable to create pull request for: ${github.context.repo.repo}`);
+    }
+
+    core.info(`Pull request created at: ${pullRequest.html_url}`);
+
+    core.info('');
+    core.info(`Updating pull request ${pullRequest.number}...`);
 
     // https://docs.github.com/en/rest/reference/issues#update-an-issue
     const update = {
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
-      issue_number: 'TODO',
+      issue_number: pullRequest.number,
       milestone: milestone.number,
       labels: [`project${states.project}`, states.type.toLowerCase(), states.releaseTag],
       assignees: [github.context.actor]
     };
 
-    core.info(JSON.stringify(update));
+    const updateRequest = await octokit.issues.update(update);
+
+    if (updateRequest.status != 201) {
+      core.info(`Request: ${JSON.stringify(update)}`);
+      core.info(`Result: ${JSON.stringify(updateRequest)}`);
+      throw new Error(`Unable to update labels for pull request at: ${updateRequest.html_url}`);
+    }
+
+    core.info(`Added labels: ${update.labels.join(', ')}`);
 
     // add reviewers to pull request
-    /*
-    await octokit.request('POST /repos/{owner}/{repo}/pulls/{pull_number}/requested_reviewers', {
-      owner: 'octocat',
-      repo: 'hello-world',
-      pull_number: 42,
-      reviewers: [
-        'reviewers'
-      ]
-    })
-    */
+    const reviewers = {
+      owner: github.context.repo.owner,
+      repo: github.context.repo.repo,
+      pull_number: pullRequest.number,
+      reviewers: ['josecorella', 'sjengle']
+    };
 
+    const reviewRequest = await octokit.pulls.requestReviewers(reviewers);
+
+    if (reviewRequest.status != 201) {
+      core.info(`Request: ${JSON.stringify(reviewers)}`);
+      core.info(`Result: ${JSON.stringify(reviewRequest)}`);
+      throw new Error(`Unable to request reviewers for pull request at: ${pullRequest.html_url}`);
+    }
+
+    core.info(`Added reviewers: ${reviewers.reviewers.join(', ')}`);
+
+    // add instructions as a comment
     const comment = `
 ## Student Instructions
 
@@ -283,14 +306,26 @@ We will reply with further instructions. If we do not respond within 2 *business
 :warning: **We will not see this request while it is in draft mode. You must mark it as ready to review first!**
     `;
 
-    core.info(comment);
+    const commentRequest = await octokit.pulls.createComment({
+      owner: github.context.repo.owner,
+      repo: github.context.repo.repo,
+      issue_number: pullRequest.number,
+      body: comment
+    });
+
+    if (commentRequest.status != 201) {
+      core.info(`Result: ${JSON.stringify(commentRequest)}`);
+      throw new Error(`Unable to add comment for pull request at: ${pullRequest.html_url}`);
+    }
+
+    core.info(`Added instructions for: ${github.context.actor}`);
 
     core.info('');
     core.endGroup();
     // -----------------------------------------------
 
-
-    throw new Error('This action is not yet implemented. Contact the instructor for instructions on how to request code review.');
+    utils.showSuccess(`${states.type} code review request #${pullRequest.number} for project ${states.project} release ${states.release} created. Visit the pull request for further instructions at: ${pullRequest.html_url}`);
+    utils.showWarning(`Review not yet requested! Visit the created pull request #${pullRequest.number} for further instructions!`);
   }
   catch (error) {
     utils.showError(`${error.message}\n`); // show error in group
