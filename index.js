@@ -246,7 +246,7 @@ ${reviewList}
       issue_number: 'TODO',
       milestone: milestone.number,
       labels: [`project${states.project}`, states.type.toLowerCase(), states.releaseTag],
-      assignees: [${github.context.actor}]
+      assignees: [github.context.actor]
     };
 
     core.info(JSON.stringify(update));
