@@ -241,16 +241,16 @@ ${reviewList}
       throw new Error(`Unable to create pull request for: ${github.context.repo.repo}`);
     }
 
-    core.info(`Pull request created at: ${pullRequest.html_url}`);
+    core.info(`Pull request created at: ${pullRequest.data.html_url}`);
 
     core.info('');
-    core.info(`Updating pull request ${pullRequest.number}...`);
+    core.info(`Updating pull request ${pullRequest.data.number}...`);
 
     // https://docs.github.com/en/rest/reference/issues#update-an-issue
     const update = {
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
-      issue_number: pullRequest.number,
+      issue_number: pullRequest.data.number,
       milestone: milestone.number,
       labels: [`project${states.project}`, states.type.toLowerCase(), states.releaseTag],
       assignees: [github.context.actor]
@@ -261,7 +261,7 @@ ${reviewList}
     if (updateRequest.status != 201) {
       core.info(`Request: ${JSON.stringify(update)}`);
       core.info(`Result: ${JSON.stringify(updateRequest)}`);
-      throw new Error(`Unable to update labels for pull request at: ${updateRequest.html_url}`);
+      throw new Error(`Unable to update labels for pull request at: ${pullRequest.data.html_url}`);
     }
 
     core.info(`Added labels: ${update.labels.join(', ')}`);
@@ -270,7 +270,7 @@ ${reviewList}
     const reviewers = {
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
-      pull_number: pullRequest.number,
+      pull_number: pullRequest.data.number,
       reviewers: ['josecorella', 'sjengle']
     };
 
@@ -279,7 +279,7 @@ ${reviewList}
     if (reviewRequest.status != 201) {
       core.info(`Request: ${JSON.stringify(reviewers)}`);
       core.info(`Result: ${JSON.stringify(reviewRequest)}`);
-      throw new Error(`Unable to request reviewers for pull request at: ${pullRequest.html_url}`);
+      throw new Error(`Unable to request reviewers for pull request at: ${pullRequest.data.html_url}`);
     }
 
     core.info(`Added reviewers: ${reviewers.reviewers.join(', ')}`);
@@ -308,13 +308,13 @@ We will reply with further instructions. If we do not respond within 2 *business
     const commentRequest = await octokit.pulls.createComment({
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
-      issue_number: pullRequest.number,
+      issue_number: pullRequest.data.number,
       body: comment
     });
 
     if (commentRequest.status != 201) {
       core.info(`Result: ${JSON.stringify(commentRequest)}`);
-      throw new Error(`Unable to add comment for pull request at: ${pullRequest.html_url}`);
+      throw new Error(`Unable to add comment for pull request at: ${pullRequest.data.html_url}`);
     }
 
     core.info(`Added instructions for: ${github.context.actor}`);
@@ -323,8 +323,8 @@ We will reply with further instructions. If we do not respond within 2 *business
     core.endGroup();
     // -----------------------------------------------
 
-    utils.showSuccess(`${states.type} code review request #${pullRequest.number} for project ${states.project} release ${states.release} created. Visit the pull request for further instructions at: ${pullRequest.html_url}`);
-    utils.showWarning(`Review not yet requested! Visit the created pull request #${pullRequest.number} for further instructions!`);
+    utils.showSuccess(`${states.type} code review request #${pullRequest.data.number} for project ${states.project} release ${states.release} created. Visit the pull request for further instructions at: ${pullRequest.data.html_url}`);
+    utils.showWarning(`Review not yet requested! Visit the created pull request #${pullRequest.data.number} for further instructions!`);
 
     core.setFailed('Sophie is still working on this! If you see this message, your request might not be in working order.');
   }
