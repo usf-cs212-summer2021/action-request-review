@@ -65,12 +65,19 @@ exports.restoreStates = function(states) {
   core.startGroup('Restoring state...');
   core.info('');
 
-  const keys = JSON.parse(core.getState('keys'));
-  core.info(`Loaded keys: ${keys}`);
+  const saved = core.getState('keys');
 
-  for (const key of keys) {
-    states[key] = core.getState(key);
-    core.info(`Restored value ${states[key]} for state ${key}.`);
+  if (saved) {
+    const keys = JSON.parse(saved);
+    core.info(`Loaded keys: ${keys}`);
+
+    for (const key of keys) {
+      states[key] = core.getState(key);
+      core.info(`Restored value ${states[key]} for state ${key}.`);
+    }
+  }
+  else {
+    core.info('No saved state.');
   }
 
   core.info('');
