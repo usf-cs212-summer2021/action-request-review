@@ -252,7 +252,7 @@ ${reviewList}
       repo: github.context.repo.repo,
       issue_number: pullRequest.data.number,
       milestone: milestone.number,
-      labels: [`project${states.project}`, states.type.toLowerCase(), states.releaseTag, 'test'],
+      labels: [`project${states.project}`, states.type.toLowerCase(), states.releaseTag],
       assignees: [github.context.actor]
     };
 
@@ -305,7 +305,7 @@ We will reply with further instructions. If we do not respond within 2 *business
 :warning: **We will not see this request while it is in draft mode. You must mark it as ready to review first!**
     `;
 
-    const commentRequest = await octokit.pulls.createComment({
+    const commentRequest = await octokit.issues.createComment({
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
       issue_number: pullRequest.data.number,
