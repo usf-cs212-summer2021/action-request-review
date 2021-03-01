@@ -91,11 +91,11 @@ async function run() {
       throw new Error('One or more TODO comments found. Please clean up the code before requesting code review.');
     }
 
-    status.todoAwk = await utils.checkExec('awk', {
-      param: ["BEGIN { FS=\"/*\"; RS=\"*/\" } { if ($2 ~ /TODO/) { print $2 }}"],
-      title: 'Checking for multiline TODO comments',
-      chdir: `${utils.mainDir}/src/main/java`
-    });
+    // status.todoAwk = await utils.checkExec('awk', {
+    //   param: ["BEGIN { FS=\"/*\"; RS=\"*/\" } { if ($2 ~ /TODO/) { print $2 }}"],
+    //   title: 'Checking for multiline TODO comments',
+    //   chdir: `${utils.mainDir}/src/main/java`
+    // });
 
     // awk 'BEGIN { FS="/*"; RS="*/" } { if ($2 ~ /TODO/) { print $2 }}'
 
