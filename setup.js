@@ -86,8 +86,7 @@ async function prepareBranch(token, context, release) {
   });
 
   if (changed != 0) {
-    // throw new Error(`The main branch has one or more commits since release ${release} was created. There must be no changes since the last verified release for code review.`);
-    utils.showWarning(`The main branch has one or more commits since release ${release} was created. There must be no changes since the last verified release for code review.`);
+    throw new Error(`The main branch has one or more commits since release ${release} was created. There must be no changes since the last verified release for code review.`);
   }
 
   await utils.checkExec('git', {

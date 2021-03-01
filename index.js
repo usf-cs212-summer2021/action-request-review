@@ -88,8 +88,7 @@ async function run() {
     });
 
     if (status.todoGrep != 1) {
-      // throw new Error('One or more TODO comments found. Please clean up the code before requesting code review.');
-      utils.showWarning('One or more TODO comments found. Please clean up the code before requesting code review.');
+      throw new Error('One or more TODO comments found. Please clean up the code before requesting code review.');
     }
 
     status.mainGrep = await utils.checkExec('grep', {
@@ -99,7 +98,7 @@ async function run() {
     });
 
     if (status.mainGrep != 1) {
-      utils.showWarning('More than one main method found. Please clean up old main methods before requesting code review.');
+      throw new Error('More than one main method found. Please clean up old main methods before requesting code review.');
     }
 
     core.info('');
@@ -323,10 +322,10 @@ We will reply with further instructions. If we do not respond within 2 *business
     core.endGroup();
     // -----------------------------------------------
 
-    utils.showSuccess(`${states.type} code review request #${pullRequest.data.number} for project ${states.project} release ${states.release} created. Visit the pull request for further instructions at: ${pullRequest.data.html_url}`);
-    utils.showWarning(`Review not yet requested! Visit the created pull request #${pullRequest.data.number} for further instructions!`);
+    const success = `${states.type} code review request #${pullRequest.data.number} for project ${states.project} release ${states.releaseTag} created. Visit the pull request for further instructions at: ${pullRequest.data.html_url}`;
 
-    core.setFailed('Sophie is still working on this! If you see this message, your request might not be in working order.');
+    utils.showSuccess(success);
+    core.warning(success);
   }
   catch (error) {
     utils.showError(`${error.message}\n`); // show error in group
