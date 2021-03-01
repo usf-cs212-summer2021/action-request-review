@@ -92,7 +92,7 @@ async function run() {
     }
 
     status.todoAwk = await utils.checkExec('awk', {
-      param: ["'BEGIN { FS=\"/*\"; RS=\"*/\" } { if ($2 ~ /TODO/) { print $2 }}'"],
+      param: ["BEGIN { FS=\"/*\"; RS=\"*/\" } { if ($2 ~ /TODO/) { print $2 }}"],
       title: 'Checking for multiline TODO comments',
       chdir: `${utils.mainDir}/src/main/java`
     });
