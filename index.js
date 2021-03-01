@@ -230,8 +230,7 @@ ${reviewList}
       base: 'main',
       body: body,
       draft: true,
-      maintainer_can_modify: true,
-      issue: +states.issueNumber
+      maintainer_can_modify: true
     };
 
     const pullRequest = await octokit.pulls.create(data);
@@ -326,6 +325,8 @@ We will reply with further instructions. If we do not respond within 2 *business
 
     utils.showSuccess(`${states.type} code review request #${pullRequest.number} for project ${states.project} release ${states.release} created. Visit the pull request for further instructions at: ${pullRequest.html_url}`);
     utils.showWarning(`Review not yet requested! Visit the created pull request #${pullRequest.number} for further instructions!`);
+
+    core.setFailed('Sophie is still working on this! If you see this message, your request might not be in working order.');
   }
   catch (error) {
     utils.showError(`${error.message}\n`); // show error in group
