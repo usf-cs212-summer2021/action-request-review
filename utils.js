@@ -292,7 +292,7 @@ exports.verifyRelease = async function(octokit, context, release) {
       found.html_url = `https://github.com/${owner}/${repo}/actions`;
       found.name = 'UNCONFIRMED';
       found.run_number = 'UNCONFIRMED';
-      found.id: ='UNCONFIRMED';
+      found.id = 'UNCONFIRMED';
     }
 
     if (found.status != "completed" || found.conclusion != "success") {
