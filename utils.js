@@ -281,12 +281,13 @@ exports.verifyRelease = async function(octokit, context, release) {
     const branches = result.data.workflow_runs.map(r => r.head_branch);
     core.info(`Found Runs: ${branches.join(', ')}`);
 
-    const found = result.data.workflow_runs.find(r => r.head_branch === release);
+    let found = result.data.workflow_runs.find(r => r.head_branch === release);
 
     if (found === undefined) {
       // throw new Error(`workflow run not found`);
       core.warning(`Could not find any recent runs for the ${release} release. This could be due to ongoing issues with Github Actions. Please manually verify.`);
 
+      found = {};
       found.status = "completed";
       found.conclusion = "success";
       found.html_url = `https://github.com/${owner}/${repo}/actions`;
