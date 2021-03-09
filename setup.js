@@ -29,6 +29,13 @@ async function checkIssues(octokit, context, project) {
 
   core.info(`No passing design issues for project ${project} found.`);
 
+  const syncPulls = await utils.getIssues(octokit, context, project, 'synchronous');
+
+  const asyncPulls = await utils.getIssues(octokit, context, project, 'asynchronous');
+
+  core.info(JSON.stringify(syncPulls));
+  core.info(JSON.stringify(asyncPulls));
+
   core.info('');
   core.endGroup();
 
