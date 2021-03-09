@@ -33,8 +33,14 @@ async function checkIssues(octokit, context, project) {
 
   const asyncPulls = await utils.getIssues(octokit, context, project, 'asynchronous');
 
-  core.info(JSON.stringify(syncPulls));
-  core.info(JSON.stringify(asyncPulls));
+  const pulls = syncPulls.concat(asyncPulls);
+
+  const openPull = pulls.find(x => x.state == 'open' && 'pull_request' in x && 'html_url' in x.pull_request);
+
+  if (openPull) {
+    core.info(`Found open pull requests: ${JSON.stringify(openPull)}`);
+    throw new Error(`Detected open pull request #${openPull.number} for project ${project}. Please merge or close old pull requests before requesting code review.`);
+  }
 
   core.info('');
   core.endGroup();
