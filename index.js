@@ -201,11 +201,11 @@ async function run() {
         const reviews = await octokit.pulls.listReviews({
           owner: github.context.repo.owner,
           repo: github.context.repo.repo,
-          pull_number: x.number
+          pull_number: pull.number
         });
 
         core.info('\n----------\n');
-        core.info(JSON.stringify(x));
+        core.info(JSON.stringify(pull));
         core.info(JSON.stringify(reviews));
 
         rows.push(`| [#${pull.number}](${pull.html_url}) | ${status} | ${labels} | ${reviewers} | ${createdDate} | ${closedDate} |`);
