@@ -207,10 +207,6 @@ async function run() {
         const approved = reviews.data.filter(x => x.state == "APPROVED");
         const approvals = approved.map(x => `@${x.user.login}`).join(', ');
 
-        core.info('\n----------\n');
-        core.info(JSON.stringify(pull));
-        core.info(JSON.stringify(reviews));
-
         rows.push(`| [#${pull.number}](${pull.html_url}) | ${status} | ${labels} | ${approvals} | ${createdDate} | ${closedDate} |`);
       }
 
