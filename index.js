@@ -191,10 +191,22 @@ async function run() {
       for (const pull of pulls) {
         const status = pull.draft ? 'draft' : pull.state;
         const labels = pull.labels ? pull.labels.sort(sorter).map(x => x.name).join(', ') : 'N/A';
-        const reviewers = pull.requested_reviewers ? pull.requested_reviewers.map(x => `@${x.login}`).join(', ') : 'N/A';
-
         const createdDate = pull.created_at ? DateTime.fromISO(pull.created_at).setZone(zone).toLocaleString(DateTime.DATETIME_FULL) : 'N/A';
         const closedDate = pull.closed_at ? DateTime.fromISO(pull.closed_at).setZone(zone).toLocaleString(DateTime.DATETIME_FULL) : 'N/A';
+
+        const reviewers = pull.requested_reviewers ? pull.requested_reviewers.map(x => `@${x.login}`).join(', ') : 'N/A';
+
+        // https://docs.github.com/en/rest/reference/pulls#list-reviews-for-a-pull-request
+        // https://octokit.github.io/rest.js/v18#pulls-list-reviews
+        const reviews = await octokit.pulls.listReviews({
+          owner: github.context.repo.owner,
+          repo: github.context.repo.repo,
+          pull_number: x.number
+        });
+
+        core.info('\n----------\n');
+        core.info(JSON.stringify(x));
+        core.info(JSON.stringify(reviews));
 
         rows.push(`| [#${pull.number}](${pull.html_url}) | ${status} | ${labels} | ${reviewers} | ${createdDate} | ${closedDate} |`);
       }
