@@ -153,7 +153,7 @@ async function run() {
 
     if (pulls.length > 0) {
       let rows = [
-        '| Pull | Status | Labels | Reviewers | Created | Closed |',
+        '| Pull | Status | Labels | Approvals | Created | Closed |',
         '|:----:|:------:|:-------|:----------|:--------|:-------|'
       ];
 
@@ -194,7 +194,7 @@ async function run() {
         const createdDate = pull.created_at ? DateTime.fromISO(pull.created_at).setZone(zone).toLocaleString(DateTime.DATETIME_FULL) : 'N/A';
         const closedDate = pull.closed_at ? DateTime.fromISO(pull.closed_at).setZone(zone).toLocaleString(DateTime.DATETIME_FULL) : 'N/A';
 
-        const reviewers = pull.requested_reviewers ? pull.requested_reviewers.map(x => `@${x.login}`).join(', ') : 'N/A';
+        // const reviewers = pull.requested_reviewers ? pull.requested_reviewers.map(x => `@${x.login}`).join(', ') : 'N/A';
 
         // https://docs.github.com/en/rest/reference/pulls#list-reviews-for-a-pull-request
         // https://octokit.github.io/rest.js/v18#pulls-list-reviews
@@ -204,11 +204,14 @@ async function run() {
           pull_number: pull.number
         });
 
+        const approved = reviews.data.filter(x => x.state == "APPROVED");
+        const approvals = approved.map(x => `@${x.user.login}`).join(', ');
+
         core.info('\n----------\n');
         core.info(JSON.stringify(pull));
         core.info(JSON.stringify(reviews));
 
-        rows.push(`| [#${pull.number}](${pull.html_url}) | ${status} | ${labels} | ${reviewers} | ${createdDate} | ${closedDate} |`);
+        rows.push(`| [#${pull.number}](${pull.html_url}) | ${status} | ${labels} | ${approvals} | ${createdDate} | ${closedDate} |`);
       }
 
       reviewList = rows.join('\n');
