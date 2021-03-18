@@ -82,7 +82,7 @@ async function run() {
     core.startGroup('Checking code for cleanup...');
 
     status.todoGrep = await utils.checkExec('grep', {
-      param: ['-rnoiE', '//\\s*TODO\\b', '.'],
+      param: ['-rnoiE', '^\\s*[/*]{1,2}.*\\bTODO\\b', '.'],
       title: 'Checking for 1 line TODO comments',
       chdir: `${utils.mainDir}/src/main/java`
     });
