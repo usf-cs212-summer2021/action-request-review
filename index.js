@@ -289,7 +289,7 @@ ${reviewList}
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
       pull_number: pullRequest.data.number,
-      reviewers: ['josecorella', 'sjengle']
+      reviewers: ['sjengle']
     };
 
     const reviewRequest = await octokit.pulls.requestReviewers(reviewers);
